@@ -4,9 +4,11 @@
 [![Ansible Galaxy](https://img.shields.io/badge/ansible--galaxy-netbox-blue.svg?style=popout-square)](https://galaxy.ansible.com/realtime/netbox)
 [![Ansible Role](https://img.shields.io/ansible/role/d/realtime/netbox.svg?style=popout-square)](https://galaxy.ansible.com/realtime/netbox)
 
-Deploys [NetBox](https://netbox.dev/) as a Docker Compose stack on Ubuntu hosts.
-No git clones on target hosts — Ansible owns all configuration via templates and
-variables. Each site is fully isolated with its own Postgres and Valkey instances.
+An Ansible-managed implementation of the [netbox-docker](https://github.com/netbox-community/netbox-docker)
+project. Rather than cloning netbox-docker on each host and tweaking files by hand,
+this role renders all configuration from templates and variables at deploy time —
+Ansible owns the full lifecycle. Each site is fully isolated with its own Postgres
+and Valkey instances.
 
 > For full architecture, variable hierarchy, upgrade process, and all design decisions see [DESIGN.md](DESIGN.md).
 
@@ -179,46 +181,6 @@ automatically:
 > **⚠️ Change this password immediately after first login.** The default credentials
 > are publicly known. Navigate to the top-right user menu → Profile → Change Password,
 > or use the Django admin at `https://<netbox_fqdn>/admin/`.
-
-## Co-located containers (Traefik label convention)
-
-NetBox runs on the same Docker host as Traefik. The Ansible-managed
-`docker-compose.overlay.yml` adds the required labels and network membership
-automatically — no manual label editing is needed for NetBox itself.
-
-For other containers co-located on the same host, add labels and join the
-`traefik_proxy` network:
-
-```yaml
-services:
-  myapp:
-    image: ghcr.io/example/myapp:1.2.3
-    networks: [traefik_proxy]
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.myapp.rule: "Host(`myapp.corp.example.com`)"
-      traefik.http.routers.myapp.entrypoints: "websecure"
-      traefik.http.routers.myapp.tls: "true"
-      traefik.http.routers.myapp.middlewares: "security-headers@file"
-      traefik.http.services.myapp.loadbalancer.server.port: "8080"
-
-networks:
-  traefik_proxy:
-    external: true
-```
-
-For backends on a different host or VM, configure a `traefik_sites` entry in
-`ansible-role-traefik` instead — no labels or shared network required:
-
-```yaml
-traefik_sites:
-  - name: myapp
-    fqdns:
-      - myapp.corp.example.com
-    backend: http://192.168.1.100:8080
-    allowlist:
-      - internal
-```
 
 ## Operations
 
