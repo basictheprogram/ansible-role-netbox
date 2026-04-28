@@ -1,0 +1,76 @@
+---
+- name: Assert supported operating system
+  ansible.builtin.assert:
+    that:
+      - >
+        (ansible_facts['distribution'] == "Ubuntu" and
+         ansible_facts['distribution_version'] is version("24.04", ">="))
+        or
+        (ansible_facts['distribution'] == "Debian" and
+         ansible_facts['distribution_major_version'] is version("12", ">="))
+    fail_msg: >
+      Unsupported OS: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}.
+      Supported: Ubuntu 24.04+, Debian 12 (Bookworm), Debian 13 (Trixie).
+    success_msg: "OS check passed: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"
+
+- name: Assert Docker CLI is available
+  ansible.builtin.command: docker --version
+  register: _netbox_docker_version
+  changed_when: false
+  failed_when: _netbox_docker_version.rc != 0
+
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Assert Docker daemon is running
+  ansible.builtin.assert:
+    that:
+      - "'docker.service' in ansible_facts.services"
+      - "ansible_facts.services['docker.service'].state == 'running'"
+    fail_msg: >
+      Docker daemon is not running on {{ inventory_hostname }}.
+      This role has a soft dependency on Docker — install and start Docker
+      before applying this role.
+    success_msg: "Docker daemon is running"
+
+- name: Assert required secrets are defined
+  ansible.builtin.assert:
+    that:
+      - netbox_db_password is defined
+      - netbox_redis_password is defined
+      - netbox_redis_cache_password is defined
+      - netbox_secret_key is defined
+      - netbox_api_token_pepper is defined
+    fail_msg: >
+      One or more required secret variables are not defined.
+      The following must be set via Ansible Vault:
+      netbox_db_password, netbox_redis_password, netbox_redis_cache_password,
+      netbox_secret_key, netbox_api_token_pepper
+
+- name: Assert SECRET_KEY meets minimum length
+  ansible.builtin.assert:
+    that:
+      - netbox_secret_key | length >= 50
+    fail_msg: >
+      netbox_secret_key is too short ({{ netbox_secret_key | length }} chars).
+      Django requires at least 50 characters.
+      Generate one with: python3 -c "import secrets; print(secrets.token_urlsafe(50))"
+
+- name: Assert API_TOKEN_PEPPER meets minimum length
+  ansible.builtin.assert:
+    that:
+      - netbox_api_token_pepper | length >= 50
+    fail_msg: >
+      netbox_api_token_pepper is too short ({{ netbox_api_token_pepper | length }} chars).
+      NetBox requires at least 50 characters.
+      Generate one with: python3 -c "import secrets; print(secrets.token_urlsafe(50))"
+
+- name: Assert required site-specific variables are defined
+  ansible.builtin.assert:
+    that:
+      - netbox_email_from is defined
+      - netbox_email_server is defined
+    fail_msg: >
+      One or more required site-specific variables are not defined.
+      The following must be set in host_vars:
+      netbox_email_from, netbox_email_server

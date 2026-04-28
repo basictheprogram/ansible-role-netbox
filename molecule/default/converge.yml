@@ -1,0 +1,17 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    # Secrets — test values only, never use in production
+    netbox_db_password: "molecule_test_db_password"
+    netbox_redis_password: "molecule_test_redis_password"
+    netbox_redis_cache_password: "molecule_test_redis_cache_password"
+    netbox_secret_key: "molecule_test_secret_key_do_not_use_in_production"
+    netbox_api_token_pepper: "molecule_test_api_token_pepper"
+
+    # Site identity — test values only
+    netbox_email_from: "netbox@test.example.com"
+    netbox_email_server: "relay.test.example.com"
+
+  roles:
+    - role: realtime.netbox

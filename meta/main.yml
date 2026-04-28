@@ -1,0 +1,25 @@
+---
+dependencies: []
+
+galaxy_info:
+  namespace: realtime
+  role_name: netbox
+  author: "Bob Tanner"
+  company: "Real Time Enterprises, Inc."
+  description: "Deploy NetBox as a Docker Compose stack."
+  license: "MIT"
+  min_ansible_version: "2.20"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble    # 24.04
+        - resolute # 26.04
+    - name: Debian
+      versions:
+        - bookworm # 12
+        - trixie   # 13
+  galaxy_tags:
+    - netbox
+    - docker
+    - ipam
+    - dcim

@@ -1,0 +1,7 @@
+---
+# Internal paths derived from netbox_deploy_dir.
+# These are role constants — not part of the public interface.
+# Do not override these; change netbox_deploy_dir in defaults instead.
+
+netbox_env_dir: "{{ netbox_deploy_dir }}/env"
+netbox_config_dir: "{{ netbox_deploy_dir }}/configuration"

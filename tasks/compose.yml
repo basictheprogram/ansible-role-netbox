@@ -1,0 +1,18 @@
+---
+- name: Copy docker-compose.yml to host
+  ansible.builtin.copy:
+    src: docker-compose.yml
+    dest: "{{ netbox_deploy_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart netbox
+
+- name: Template docker-compose.overlay.yml to host
+  ansible.builtin.template:
+    src: docker-compose.overlay.yml.j2
+    dest: "{{ netbox_deploy_dir }}/docker-compose.overlay.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart netbox

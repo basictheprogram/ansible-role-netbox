@@ -1,0 +1,58 @@
+---
+dependency:
+  name: galaxy
+
+driver:
+  name: docker
+
+platforms:
+  - name: debian12
+    image: "geerlingguy/docker-debian12-ansible:latest"
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+    pre_build_image: true
+
+  - name: debian13
+    image: "geerlingguy/docker-debian13-ansible:latest"
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+    pre_build_image: true
+
+  - name: ubuntu2404
+    image: "geerlingguy/docker-ubuntu2404-ansible:latest"
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+    pre_build_image: true
+
+  # Ubuntu 26.04 (Resolute Raccoon) — confirmed working in production.
+  # Requires geerlingguy/docker-ubuntu2604-ansible; comment out if image
+  # not yet available.
+  - name: ubuntu2604
+    image: "geerlingguy/docker-ubuntu2604-ansible:latest"
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+    pre_build_image: true
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      interpreter_python: auto_silent
+
+scenario:
+  name: default
+
+verifier:
+  name: ansible
