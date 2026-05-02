@@ -6,7 +6,7 @@
 ---
 services:
   netbox: &netbox
-    image: docker.io/netboxcommunity/netbox:${VERSION-v4.5-4.0.2}
+    image: docker.io/netboxcommunity/netbox:${VERSION-v4.5.9-4.0.2}
     restart: unless-stopped
     depends_on:
       postgres:

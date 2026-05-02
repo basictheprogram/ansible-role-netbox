@@ -5,7 +5,7 @@
 
 # NetBox image tag — tracks upstream netbox-docker releases
 # Upstream: https://github.com/netbox-community/netbox-docker/releases
-netbox_version: "v4.5-4.0.2"
+netbox_version: "v4.5.9-4.0.2"
 
 # Postgres image tag
 netbox_postgres_version: "18-alpine"
