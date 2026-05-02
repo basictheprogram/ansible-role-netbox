@@ -65,6 +65,17 @@ is listening. `netbox-worker` depends on `netbox:service_healthy`, so the entire
 stack aborts. 300s gives migrations a safe runway on first deployment without
 affecting steady-state restarts (where migrations are a no-op and startup is fast).
 
+### restart: unless-stopped on all services
+
+Upstream does not set a restart policy on any service. Without one, Docker leaves
+all containers in the exited state after a host reboot and never brings them back.
+All five services (netbox, netbox-worker, postgres, redis, redis-cache) carry
+`restart: unless-stopped` so the stack recovers automatically after a host reboot
+or power event. `unless-stopped` is preferred over `always` so that containers
+intentionally stopped by an operator (e.g. `docker compose down`) stay down until
+explicitly started again. When reviewing upstream diffs during upgrades, preserve
+this addition — upstream does not set a restart policy.
+
 # Configuration model
 
 * docker-compose.yml is treated as the upstream source of truth and is shipped as a
@@ -239,6 +250,7 @@ Source: https://github.com/netbox-community/netbox-docker
 services:
   netbox: &netbox
     image: docker.io/netboxcommunity/netbox:${VERSION-v4.5-4.0.2}
+    restart: unless-stopped
     depends_on:
       - postgres
       - redis
@@ -272,6 +284,7 @@ services:
 
   postgres:
     image: docker.io/postgres:18-alpine
+    restart: unless-stopped
     healthcheck:
       test: pg_isready -q -t 2 -d $$POSTGRES_DB -U $$POSTGRES_USER
       start_period: 20s
@@ -284,6 +297,7 @@ services:
 
   redis:
     image: docker.io/valkey/valkey:9.0-alpine
+    restart: unless-stopped
     command:
       - sh
       - -c
@@ -300,6 +314,7 @@ services:
 
   redis-cache:
     image: docker.io/valkey/valkey:9.0-alpine
+    restart: unless-stopped
     command:
       - sh
       - -c

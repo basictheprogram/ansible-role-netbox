@@ -3,10 +3,11 @@
 # Do NOT template this file. All per-site configuration is in env/ files.
 # Update this file when upstream netbox-docker releases a new version.
 # See DESIGN.md § Upgrade process for the procedure.
-
+---
 services:
   netbox: &netbox
     image: docker.io/netboxcommunity/netbox:${VERSION-v4.5-4.0.2}
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,6 +45,7 @@ services:
 
   postgres:
     image: docker.io/postgres:18-alpine
+    restart: unless-stopped
     healthcheck:
       test: pg_isready -q -t 2 -d $$POSTGRES_DB -U $$POSTGRES_USER
       start_period: 20s
@@ -56,12 +58,13 @@ services:
 
   redis:
     image: docker.io/valkey/valkey:9.0-alpine
+    restart: unless-stopped
     command:
       - sh
       - -c # this is to evaluate the $REDIS_PASSWORD from the env
       - valkey-server --appendonly yes --requirepass $$REDIS_PASSWORD ## $$ because of docker-compose
     healthcheck: &redis-healthcheck
-      test: '[ $$(valkey-cli --pass "$${REDIS_PASSWORD}" ping) = ''PONG'' ]'
+      test: "[ $$(valkey-cli --pass \"$${REDIS_PASSWORD}\" ping) = 'PONG' ]"
       start_period: 5s
       timeout: 3s
       interval: 1s
@@ -72,6 +75,7 @@ services:
 
   redis-cache:
     image: docker.io/valkey/valkey:9.0-alpine
+    restart: unless-stopped
     command:
       - sh
       - -c # this is to evaluate the $REDIS_PASSWORD from the env
