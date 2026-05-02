@@ -87,8 +87,9 @@
 .tox/
 .venv
 .webassets-cache
+/ENV/
+/env/
 /site
-ENV/
 Icon
 MANIFEST
 Network Trash Folder
@@ -114,7 +115,6 @@ docs/_build/
 downloads/
 eggs/
 env.bak/
-env/
 htmlcov/
 httpd/
 instance/
