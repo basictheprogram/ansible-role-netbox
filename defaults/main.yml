@@ -80,6 +80,17 @@ netbox_email_ssl_certfile: ""
 netbox_email_ssl_keyfile: ""
 
 # ------------------------------------------------------------------------------
+# Traefik integration
+# ------------------------------------------------------------------------------
+
+# Middlewares applied to the netbox router, in order.
+# security-headers@file is always required.
+# Add allowlist middleware names (e.g. internal-allowlist@file) to match
+# whatever the Traefik project applies for this site.
+netbox_traefik_middlewares:
+  - "security-headers@file"
+
+# ------------------------------------------------------------------------------
 # Compose stack state
 # Set to 'absent' to tear down the stack (data volumes are preserved)
 # ------------------------------------------------------------------------------

@@ -15,7 +15,7 @@ services:
       traefik.http.routers.netbox.rule: "Host(`{{ netbox_fqdn }}`)"
       traefik.http.routers.netbox.entrypoints: "websecure"
       traefik.http.routers.netbox.tls: "true"
-      traefik.http.routers.netbox.middlewares: "security-headers@file"
+      traefik.http.routers.netbox.middlewares: "{{ netbox_traefik_middlewares | join(',') }}"
       traefik.http.services.netbox.loadbalancer.server.port: "8080"
 
 networks:
