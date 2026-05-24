@@ -19,7 +19,7 @@ services:
     user: "netbox:root"
     healthcheck:
       test: curl -f http://localhost:8080/login/ || exit 1
-      start_period: 300s
+      start_period: 600s
       timeout: 3s
       interval: 15s
     volumes:

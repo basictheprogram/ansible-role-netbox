@@ -2,14 +2,16 @@
 # Role: ansible-role-netbox
 # Host: {{ inventory_hostname }}
 #
-# Traefik integration layer. Merged with docker-compose.yml at runtime.
-# Adds Traefik labels to the netbox service and joins the traefik_proxy network.
+# Overlay merged with docker-compose.yml at runtime.
+# Adds Traefik labels, network membership, and tunable healthcheck settings.
 
 services:
   netbox:
+    healthcheck:
+      start_period: "{{ netbox_healthcheck_start_period }}"
     networks:
-      - default        # retain connectivity to postgres, redis, redis-cache
-      - traefik_proxy  # expose to Traefik for TLS termination and routing
+      - default                         # retain connectivity to postgres, redis, redis-cache
+      - "{{ netbox_traefik_network }}"  # expose to Traefik for TLS termination and routing
     labels:
       traefik.enable: "true"
       traefik.http.routers.netbox.rule: "Host(`{{ netbox_fqdn }}`)"
@@ -19,6 +21,6 @@ services:
       traefik.http.services.netbox.loadbalancer.server.port: "8080"
 
 networks:
-  default: {}          # project default network — created by docker-compose.yml
-  traefik_proxy:
+  default: {}                    # project default network — created by docker-compose.yml
+  "{{ netbox_traefik_network }}":
     external: true

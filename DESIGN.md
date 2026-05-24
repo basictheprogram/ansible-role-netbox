@@ -56,14 +56,24 @@ Our copy uses `condition: service_healthy` for all three dependencies, ensuring
 Docker Compose waits for each service to pass its healthcheck before starting
 netbox. When reviewing upstream diffs during upgrades, preserve this change.
 
-### netbox healthcheck start_period extended to 300s
+### netbox healthcheck start_period extended to 600s
 
 Upstream uses `start_period: 90s`. On a fresh database, NetBox applies the full
 migration history before starting the web server. This routinely exceeds 90
 seconds, causing the healthcheck to declare the container unhealthy before nginx
 is listening. `netbox-worker` depends on `netbox:service_healthy`, so the entire
-stack aborts. 300s gives migrations a safe runway on first deployment without
-affecting steady-state restarts (where migrations are a no-op and startup is fast).
+stack aborts.
+
+300s was previously used but proved insufficient during a 4.3→4.6.1 migration,
+where applying the full migration history to a populated database took ~480s.
+Docker marked the container unhealthy at the 300s boundary, causing `netbox-worker`
+to abort with "dependency failed to start". The containers recovered via
+`restart: unless-stopped` and eventually became healthy, but the Ansible play
+returned an error.
+
+600s gives migrations a safe runway on both fresh deployments and major-version
+upgrades without affecting steady-state restarts (where migrations are a no-op
+and startup completes in well under a minute).
 
 ### restart: unless-stopped on all services
 

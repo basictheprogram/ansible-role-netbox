@@ -33,6 +33,35 @@
       before applying this role.
     success_msg: "Docker daemon is running"
 
+- name: Gather Traefik proxy network info
+  community.docker.docker_network_info:
+    name: "{{ netbox_traefik_network }}"
+  register: _netbox_traefik_network_info
+
+- name: Assert Traefik proxy network exists
+  ansible.builtin.assert:
+    that:
+      - _netbox_traefik_network_info.exists
+    fail_msg: |
+      External Docker network '{{ netbox_traefik_network }}' not found on {{ inventory_hostname }}.
+
+      This role requires the realtime.traefik role to be deployed on this host
+      first. Traefik creates the '{{ netbox_traefik_network }}' network as part
+      of its own deployment, and NetBox joins it so Traefik can route traffic.
+
+      Recommended fix:
+        Deploy the realtime.traefik role on {{ inventory_hostname }}, then
+        re-run this playbook.
+
+      Workaround (migration or first-time bring-up only — not a substitute for Traefik):
+        ssh {{ inventory_hostname }}
+        docker network create {{ netbox_traefik_network }}
+      Then re-run this playbook. NetBox will start and connect to the network
+      but will not receive external traffic until Traefik is deployed.
+
+      To change the expected network name, set netbox_traefik_network in host_vars.
+    success_msg: "Traefik proxy network '{{ netbox_traefik_network }}' found"
+
 - name: Assert required secrets are defined
   ansible.builtin.assert:
     that:
@@ -74,3 +103,27 @@
       One or more required site-specific variables are not defined.
       The following must be set in host_vars:
       netbox_email_from, netbox_email_server
+
+- name: Assert vault_netbox_api_token is v2 format (nbt_<id>.<secret>)
+  ansible.builtin.assert:
+    that:
+      - vault_netbox_api_token is match('^nbt_[A-Za-z0-9_+/=-]+\.[A-Za-z0-9_+/=-]+$')
+    fail_msg: |
+      vault_netbox_api_token does not look like a NetBox v2 token.
+
+      NetBox 4.0+ uses v2 tokens in the format:  nbt_<id>.<secret>
+      and requires the Authorization header scheme:  Bearer nbt_<id>.<secret>
+
+      The token in vault.yml appears to be a v1 (pre-4.0) token, which NetBox 4.6+
+      rejects with "Invalid v1 token".
+
+      To generate a new v2 token:
+        ssh {{ inventory_hostname }}
+        cd /opt/netbox
+        sudo docker compose exec netbox curl -s -X POST http://localhost:8080/api/users/tokens/provision/ \
+          -H "Content-Type: application/json" \
+          -d '{"username": "admin", "password": "<PASSWORD>"}'
+        # Assemble the full token from the response:  nbt_<key>.<token>
+        # Update vault_netbox_api_token in vault.yml with the assembled value.
+    success_msg: "vault_netbox_api_token is v2 format"
+  when: vault_netbox_api_token is defined

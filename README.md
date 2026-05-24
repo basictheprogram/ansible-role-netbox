@@ -135,6 +135,29 @@ Generate secrets with:
 python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
+### Healthcheck tuning
+
+```yaml
+netbox_healthcheck_start_period: "600s"
+```
+
+Grace period before Docker starts counting healthcheck failures against the `netbox`
+container. During this window the container is considered "starting" rather than
+"unhealthy", so `netbox-worker` will not abort even if the health endpoint is not
+yet responding.
+
+The default of 600s covers the worst observed case: a major-version upgrade
+(e.g. 4.3 → 4.6.1) against a populated database where applying the full migration
+history took ~480s. Steady-state restarts complete in well under a minute and are
+unaffected by a generous start_period.
+
+Increase in `host_vars` for slow hosts or unusually large migration jumps:
+
+```yaml
+# host_vars/<hostname>/vars.yml
+netbox_healthcheck_start_period: "900s"
+```
+
 ### Compose stack state
 
 ```yaml

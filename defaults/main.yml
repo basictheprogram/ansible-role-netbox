@@ -5,7 +5,7 @@
 
 # NetBox image tag — tracks upstream netbox-docker releases
 # Upstream: https://github.com/netbox-community/netbox-docker/releases
-netbox_version: "v4.5.9-4.0.2"
+netbox_version: "v4.6.1-5.0.1"
 
 # Postgres image tag
 netbox_postgres_version: "18-alpine"
@@ -80,8 +80,28 @@ netbox_email_ssl_certfile: ""
 netbox_email_ssl_keyfile: ""
 
 # ------------------------------------------------------------------------------
+# Healthcheck tuning
+# ------------------------------------------------------------------------------
+
+# Grace period before the netbox container's healthcheck starts counting failures.
+# On a fresh database or after a major-version upgrade, NetBox must apply the full
+# migration history before the web server starts listening — this can take several
+# minutes. If start_period expires before migrations finish, Docker marks the
+# container unhealthy and netbox-worker aborts its startup.
+# Increase in host_vars for slow hosts or large migration jumps.
+# Steady-state restarts are unaffected: migrations are a no-op and the server
+# starts in well under a minute.
+netbox_healthcheck_start_period: "600s"
+
+# ------------------------------------------------------------------------------
 # Traefik integration
 # ------------------------------------------------------------------------------
+
+# Name of the external Docker network created by the realtime.traefik role.
+# Must match traefik_docker_network in the Traefik role's defaults.
+# This network must exist on the host before this role is applied —
+# the preflight will fail fast with a clear workaround message if it is missing.
+netbox_traefik_network: traefik_proxy
 
 # Middlewares applied to the netbox router, in order.
 # security-headers@file is always required.
