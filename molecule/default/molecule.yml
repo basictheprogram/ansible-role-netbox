@@ -55,4 +55,8 @@ scenario:
   name: default
 
 verifier:
-  name: ansible
+  name: testinfra
+  directory: tests/
+  options:
+    v: true
+    p: "no:cacheprovider"

@@ -3,23 +3,19 @@ dependencies: []
 
 galaxy_info:
   namespace: realtime
-  role_name: netbox
+  role_name: netbox_docker
   author: "Bob Tanner"
   company: "Real Time Enterprises, Inc."
-  description: "Deploy NetBox as a Docker Compose stack."
+  description: >-
+    Deploy NetBox as a Docker Compose stack, for Ubuntu (noble, resolute)
+    and Debian (bookworm, trixie).
   license: "MIT"
   min_ansible_version: "2.20"
-  platforms:
-    - name: Ubuntu
-      versions:
-        - noble    # 24.04
-        - resolute # 26.04
-    - name: Debian
-      versions:
-        - bookworm # 12
-        - trixie   # 13
+  issue_tracker_url: "https://github.com/basictheprogram/ansible-role-netbox_docker/issues"
   galaxy_tags:
     - netbox
     - docker
     - ipam
     - dcim
+    - ubuntu
+    - debian

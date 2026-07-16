@@ -1,8 +1,8 @@
-# Ansible Role: netbox
+# Ansible Role: netbox_docker
 
-[![CI](https://github.com/basictheprogram/ansible-role-netbox/actions/workflows/ci.yml/badge.svg)](https://github.com/basictheprogram/ansible-role-netbox/actions/workflows/ci.yml)
-[![Ansible Galaxy](https://img.shields.io/badge/ansible--galaxy-netbox-blue.svg?style=popout-square)](https://galaxy.ansible.com/realtime/netbox)
-[![Ansible Role](https://img.shields.io/ansible/role/d/realtime/netbox.svg?style=popout-square)](https://galaxy.ansible.com/realtime/netbox)
+[![CI](https://github.com/basictheprogram/ansible-role-netbox_docker/actions/workflows/ci.yml/badge.svg)](https://github.com/basictheprogram/ansible-role-netbox_docker/actions/workflows/ci.yml)
+[![Ansible Galaxy](https://img.shields.io/badge/ansible--galaxy-netbox_docker-blue.svg?style=popout-square)](https://galaxy.ansible.com/realtime/netbox_docker)
+[![Ansible Role](https://img.shields.io/ansible/role/d/realtime/netbox_docker.svg?style=popout-square)](https://galaxy.ansible.com/realtime/netbox_docker)
 
 An Ansible-managed implementation of the [netbox-docker](https://github.com/netbox-community/netbox-docker)
 project. Rather than cloning netbox-docker on each host and tweaking files by hand,
@@ -14,25 +14,27 @@ and Valkey instances.
 
 ## Requirements
 
-- Ubuntu 24.04 or Ubuntu 26.04
+- Ansible core >= 2.20
+- Ubuntu 24.04 (noble) or 26.04 (resolute), or Debian 12 (bookworm) or 13 (trixie)
 - Docker Engine with the Compose plugin installed and running
   (soft dependency — role asserts this at runtime)
-- `community.docker` collection >= 3.0
+- `community.docker` collection >= 3.0 (declared in `requirements.yml`;
+  install with `ansible-galaxy collection install -r requirements.yml`)
 - The `traefik_proxy` external Docker network must exist on the target host
   before this role runs (created by `ansible-role-traefik`)
 
 ## Installation
 
 ```bash
-ansible-galaxy install realtime.netbox
+ansible-galaxy install realtime.netbox_docker
 ```
 
 Or pin to this repository in `requirements.yml`:
 
 ```yaml
 roles:
-  - name: realtime.netbox
-    src: https://github.com/basictheprogram/ansible-role-netbox
+  - name: realtime.netbox_docker
+    src: https://github.com/basictheprogram/ansible-role-netbox_docker
     version: main
 ```
 
@@ -164,6 +166,31 @@ netbox_healthcheck_start_period: "900s"
 netbox_compose_state: present   # set to 'absent' to tear down (data volumes preserved)
 ```
 
+## Task Flow
+
+Tasks run in this order (see `tasks/main.yml`):
+
+1. **Preflight** (`tasks/preflight.yml`) — fails fast before touching the host if:
+   - `ansible-core` is older than 2.20
+   - the OS is not Ubuntu 24.04+ or Debian 12+
+   - the Docker CLI or daemon is unavailable
+   - the `traefik_proxy` external network does not exist
+   - any required secret (`netbox_db_password`, `netbox_redis_password`,
+     `netbox_redis_cache_password`, `netbox_secret_key`,
+     `netbox_api_token_pepper`) is undefined, or `netbox_secret_key ` /
+     `netbox_api_token_pepper` is under 50 characters
+   - `netbox_email_from` or `netbox_email_server` is undefined
+   - `vault_netbox_api_token` (if set) is not a valid v2-format token
+2. **Directories** (`tasks/directories.yml`) — creates the deploy directory
+   layout and copies static configuration files to the host.
+3. **Compose** (`tasks/compose.yml`) — copies `docker-compose.yml` and
+   templates `docker-compose.overlay.yml` to the host.
+4. **Env** (`tasks/env.yml`) — templates the project `.env` and all four
+   service env files (`netbox.env`, `postgres.env`, `redis.env`,
+   `redis-cache.env`).
+5. **Service** (`tasks/service.yml`) — brings the compose stack up (or down,
+   per `netbox_compose_state`) and waits for it to become healthy.
+
 ## Quick start
 
 ```yaml
@@ -171,7 +198,7 @@ netbox_compose_state: present   # set to 'absent' to tear down (data volumes pre
 - name: Deploy NetBox
   hosts: netbox
   roles:
-    - role: realtime.netbox
+    - role: realtime.netbox_docker
 ```
 
 Minimum `host_vars/<hostname>/vars.yml`:

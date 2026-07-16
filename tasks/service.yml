@@ -8,4 +8,4 @@
       - docker-compose.overlay.yml
     state: "{{ netbox_compose_state }}"
     wait: true
-    wait_timeout: 600
+    wait_timeout: "{{ netbox_compose_wait_timeout }}"

@@ -1,4 +1,12 @@
 ---
+- name: Assert minimum Ansible version
+  ansible.builtin.assert:
+    that:
+      - ansible_version.full is version('2.20', '>=')
+    fail_msg: >
+      ansible-role-netbox_docker requires ansible-core >= 2.20; found {{ ansible_version.full }}.
+    quiet: true
+
 - name: Assert supported operating system
   ansible.builtin.assert:
     that:
@@ -12,6 +20,7 @@
       Unsupported OS: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}.
       Supported: Ubuntu 24.04+, Debian 12 (Bookworm), Debian 13 (Trixie).
     success_msg: "OS check passed: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"
+    quiet: true
 
 - name: Assert Docker CLI is available
   ansible.builtin.command: docker --version
@@ -32,6 +41,7 @@
       This role has a soft dependency on Docker — install and start Docker
       before applying this role.
     success_msg: "Docker daemon is running"
+    quiet: true
 
 - name: Gather Traefik proxy network info
   community.docker.docker_network_info:
@@ -61,6 +71,7 @@
 
       To change the expected network name, set netbox_traefik_network in host_vars.
     success_msg: "Traefik proxy network '{{ netbox_traefik_network }}' found"
+    quiet: true
 
 - name: Assert required secrets are defined
   ansible.builtin.assert:
@@ -75,6 +86,7 @@
       The following must be set via Ansible Vault:
       netbox_db_password, netbox_redis_password, netbox_redis_cache_password,
       netbox_secret_key, netbox_api_token_pepper
+    quiet: true
 
 - name: Assert SECRET_KEY meets minimum length
   ansible.builtin.assert:
@@ -84,6 +96,7 @@
       netbox_secret_key is too short ({{ netbox_secret_key | length }} chars).
       Django requires at least 50 characters.
       Generate one with: python3 -c "import secrets; print(secrets.token_urlsafe(50))"
+    quiet: true
 
 - name: Assert API_TOKEN_PEPPER meets minimum length
   ansible.builtin.assert:
@@ -93,6 +106,7 @@
       netbox_api_token_pepper is too short ({{ netbox_api_token_pepper | length }} chars).
       NetBox requires at least 50 characters.
       Generate one with: python3 -c "import secrets; print(secrets.token_urlsafe(50))"
+    quiet: true
 
 - name: Assert required site-specific variables are defined
   ansible.builtin.assert:
@@ -103,6 +117,7 @@
       One or more required site-specific variables are not defined.
       The following must be set in host_vars:
       netbox_email_from, netbox_email_server
+    quiet: true
 
 - name: Assert vault_netbox_api_token is v2 format (nbt_<id>.<secret>)
   ansible.builtin.assert:
@@ -126,4 +141,5 @@
         # Assemble the full token from the response:  nbt_<key>.<token>
         # Update vault_netbox_api_token in vault.yml with the assembled value.
     success_msg: "vault_netbox_api_token is v2 format"
+    quiet: true
   when: vault_netbox_api_token is defined

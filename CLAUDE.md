@@ -1,4 +1,4 @@
-# Claude Code project notes — realtime.netbox
+# Claude Code project notes — realtime.netbox_docker
 
 Deploys NetBox as a Docker Compose stack on Ubuntu and Debian hosts. Rather than
 cloning netbox-docker on each host and tweaking files by hand, this role renders
@@ -193,9 +193,11 @@ commit. Stop and verify between items.
 6. ✅ `handlers/main.yml` — restart netbox stack handler
 7. ✅ `tasks/service.yml` — `docker_compose_v2` with `wait: true` /
    `wait_timeout: 600`
-8. ✅ `molecule/default/` — converge + verify scenarios exist
-9. 🔲 Expand `molecule/default/verify.yml` — add assertions for rendered
-   env file content, overlay file presence, service health
+8. ✅ `molecule/default/` — converge scenario exists (debian12, debian13,
+   ubuntu2404, ubuntu2604 platforms); verifier is `ansible` but no
+   `verify.yml` has been added yet
+9. 🔲 Add `molecule/default/verify.yml` — assertions for rendered env
+   file content, overlay file presence, service health
 
 ### Consumer side notes
 

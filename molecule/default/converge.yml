@@ -1,6 +1,23 @@
 ---
 - name: Converge
   hosts: all
+  pre_tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+        force_apt_get: true
+      changed_when: false
+      when: ansible_facts.os_family == 'Debian'
+    - name: Update dnf cache
+      ansible.builtin.dnf:
+        update_cache: true
+      changed_when: false
+      when: ansible_facts.os_family == 'RedHat'
+    - name: Create traefik_proxy network for preflight check
+      community.docker.docker_network:
+        name: traefik_proxy
+        state: present
   vars:
     # Secrets — test values only, never use in production
     netbox_db_password: "molecule_test_db_password"
@@ -14,4 +31,4 @@
     netbox_email_server: "relay.test.example.com"
 
   roles:
-    - role: realtime.netbox
+    - role: realtime.netbox_docker

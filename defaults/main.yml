@@ -93,6 +93,11 @@ netbox_email_ssl_keyfile: ""
 # starts in well under a minute.
 netbox_healthcheck_start_period: "600s"
 
+# How long (seconds) the docker_compose_v2 module waits for the stack to
+# become healthy. Must exceed start_period + (retries × interval) — i.e.
+# 600 + (3 × 15) = 645s minimum. Default adds a 255s buffer for slow hosts.
+netbox_compose_wait_timeout: 900
+
 # ------------------------------------------------------------------------------
 # Traefik integration
 # ------------------------------------------------------------------------------

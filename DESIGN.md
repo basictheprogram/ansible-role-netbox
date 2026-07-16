@@ -1,4 +1,4 @@
-# ansible-role-netbox
+# ansible-role-netbox_docker
 
 Deploys NetBox as a Docker Compose stack on Ubuntu hosts. This role is the source of truth
 for NetBox configuration across all sites. It is location-agnostic and network-agnostic —
@@ -125,7 +125,7 @@ When a new release is relevant:
 # Role structure
 
 ```
-ansible-role-netbox/
+ansible-role-netbox_docker/
 ├── defaults/
 │   └── main.yml                  # all user-facing variables with safe defaults
 ├── files/
